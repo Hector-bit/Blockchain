@@ -81,21 +81,21 @@ class Blockchain(object):
     def last_block(self):
         return self.chain[-1]
 
-    def proof_of_work(self, block):
-        """
-        Simple Proof of Work Algorithm
-        Stringify the block and look for a proof.
-        Loop through possibilities, checking each one against `valid_proof`
-        in an effort to find a number that is a valid proof
-        :return: A valid proof for the provided block
-        """
-        block_string = json.dumps(block, sort_keys=True)
+    # def proof_of_work(self, block):
+    #     """
+    #     Simple Proof of Work Algorithm
+    #     Stringify the block and look for a proof.
+    #     Loop through possibilities, checking each one against `valid_proof`
+    #     in an effort to find a number that is a valid proof
+    #     :return: A valid proof for the provided block
+    #     """
+    #     block_string = json.dumps(block, sort_keys=True)
 
-        proof = 0
-        while self.valid_proof(block_string, proof) is False:
-            proof += 1 
+    #     proof = 0
+    #     while self.valid_proof(block_string, proof) is False:
+    #         proof += 1 
         
-        return proof
+    #     return proof
 
     @staticmethod
     def valid_proof(block_string, proof):
@@ -129,17 +129,41 @@ blockchain = Blockchain()
 @app.route('/mine', methods=['POST'])
 def mine():
     # Run the proof of work algorithm to get the next proof
-    # proof = blockchain.proof_of_work(blockchain.last_block)
     # Forge the new Block by adding it to the chain with the proof
-    previous_hash = blockchain.hash(blockchain.last_block)
-    block = blockchain.new_block(proof, previous_hash)
 
-    response = {
-        # TODO: Send a JSON response with the new block
-        'new_block': block
-    }
+    values = request.get_json()
+    req = ['proof', 'id']
+    if not all (k in values for k in req):
+        response = {'message': 'Missing values'}
+        return jsonify(response), 400
 
-    return jsonify(response), 200
+    submitted_proof = values['proof']
+    # print(data, 'DATA OVER HERER YALLL')
+    # if data['proof'] and data['id']:
+    #     blockchain.valid_proof(data['id'], data['proof'])
+    # else:
+    #     res = {
+    #         'message': 'Could not find id and proof'
+    #     }
+    # return jsonify(res), 400
+    # proof = blockchain.proof_of_work(blockchain.last_block)
+    block_string = json.dumps(blockchain.last_block, sort_keys=True)
+    
+    if blockchain.valid_proof(block_string, submitted_proof):
+        previous_hash = blockchain.hash(blockchain.last_block)
+        block = blockchain.new_block(submitted_proof, previous_hash)
+
+        response = {
+            # TODO: Send a JSON response with the new block
+            'new_block': block
+        }
+
+        return jsonify(response), 200
+    else:
+        response = {
+            'message': 'Something went wrong'
+        }
+        return jsonify(response), 400
 
 @app.route('/last_block', methods=['GET'])
 def endBlock():

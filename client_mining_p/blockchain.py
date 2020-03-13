@@ -58,7 +58,7 @@ class Blockchain(object):
         # Use hashlib.sha256 to create a hash
         # It requires a `bytes-like` object, which is what
         # .encode() does.
-        raw_hash = hashlib.sha256()
+        raw_hash = hashlib.sha256(string_block.encode())
         # It converts the Python string into a byte string.
         # We must make sure that the Dictionary is Ordered,
         # or we'll have inconsistent hashes
